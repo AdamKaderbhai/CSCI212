@@ -1,224 +1,207 @@
-package Homework2;
-
-/**
- * A singly linked list with immutable Nodes.
- */
 public class LinkedList {
-
-    // The inner Node class as specified
+    /**
+     * Linkedlist for Integers.
+     */
+    private Node head; // the first node
+    
     private static class Node {
-        final Integer data; // final means we cannot change it later
-        final Node rest;    // final means we cannot change the link later
-
+        private final Integer data; // the number stored here
+        private final Node rest; // next node in the list
+        
         /**
-         * Two-argument constructor.
-         * @param data The number to store
-         * @param rest The next node in the chain
+         * Construct a new node
+         * @param data the number that it holds
+         * @param rest the next node (or null)
          */
-        Node(int data, Node rest) {
+        public Node(int data, Node rest) {
             this.data = data;
             this.rest = rest;
         }
-
-        Integer getData() {
+        
+        /**
+         * Get the data
+         * @return the number in this node
+         */
+        public Integer getData() {
             return data;
         }
-
-        Node getRest() {
+        
+        /**
+         * Get the next node
+         * @return next node
+         */
+        public Node getRest() {
             return rest;
         }
     }
-
-    // The head of the list
-    private Node head;
-
+    
     /**
-     * Zero-argument constructor initializing an empty list.
+     * Constructs an empty linked list.
      */
     public LinkedList() {
-        this.head = null;
+        head = null; // start with nothing
     }
-
-    /**
-     * Returns true if the list has no elements.
-     * @return true if empty, false otherwise
-     */
+    
     public boolean isEmpty() {
-        return head == null;
+        if (head == null) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
-     * Removes all elements from the list.
+     * Removes all elements from the list, making it empty.
      */
     public void clear() {
         head = null;
     }
-
+    
     /**
-     * Returns the number of elements in the list.
-     * @return the size
+     * Get size of list
+     * @return how many elements
      */
     public int size() {
-        return size(head);
+        return helperSize(head);
     }
-
-    // Recursive helper for size
-    private static int size(Node n) {
-        if (n == null) {
-            return 0;
+    
+    // helper method for size - counts nodes recursively
+    private int helperSize(Node currentNode) {
+        if (currentNode == null) {
+            return 0; // no more nodes
         }
-        // 1 for this node + size of the rest
-        return 1 + size(n.rest); 
+        // count this node plus all the rest
+        return 1 + helperSize(currentNode.getRest());
     }
-
+    
     /**
-     * Gets the value at a specific index.
-     * @param index the position to look at
-     * @return the Integer value
-     * @throws IndexOutOfBoundsException if index is invalid
+     * Get element at index
+     * @param index where to look
+     * @return the Integer at that spot
+     * @throws IndexOutOfBoundsException if index is wronf
      */
     public Integer get(int index) {
         if (index < 0) {
-            throw new IndexOutOfBoundsException("Index cannot be negative");
+            throw new IndexOutOfBoundsException("negative index!");
         }
-        return get(head, index);
+        return helperGet(head, index);
     }
-
-    // Recursive helper for get
-    private static Integer get(Node n, int index) {
-        if (n == null) {
-            throw new IndexOutOfBoundsException("Index too large");
+    
+    // recursive helper for get method
+    private Integer helperGet(Node currentNode, int index) {
+        if (currentNode == null) {
+            throw new IndexOutOfBoundsException("index too big");
         }
         if (index == 0) {
-            return n.data;
+            // found it!
+            return currentNode.getData();
         }
-        // Go to the next node, decrease index by 1
-        return get(n.rest, index - 1);
+        // keep looking
+        return helperGet(currentNode.getRest(), index - 1);
     }
-
+    
     /**
-     * Adds an element at a specific index.
-     * @param index position to insert at
-     * @param x value to insert
-     * @throws IndexOutOfBoundsException if index is invalid
+     * Add element at specific index
+     * @param index where to add
+     * @param x what to add
+     * @throws IndexOutOfBoundsException if index is out of range
      */
     public void add(int index, Integer x) {
         if (index < 0) {
-            throw new IndexOutOfBoundsException("Index cannot be negative");
+            throw new IndexOutOfBoundsException("negative index");
         }
-        // We update head to point to the new structure returned by the helper
-        head = add(head, index, x);
+        head = helperAdd(head, index, x);
     }
-
-    // Recursive helper for add
-    private static Node add(Node n, int index, Integer x) {
+    
+    // Not sure if this is right way 
+    private Node helperAdd(Node currentNode, int index, Integer x) {
         if (index == 0) {
-            // Found the spot! Create new node pointing to the current n
-            return new Node(x, n);
+            // insert here by making new node that points to current
+            return new Node(x, currentNode);
         }
-        if (n == null) {
-            // We reached the end but index is still > 0
-            throw new IndexOutOfBoundsException("Index too large");
+        if (currentNode == null) {
+            throw new IndexOutOfBoundsException("index too big");
         }
-        // Copy current node, and recurse for the rest
-        return new Node(n.data, add(n.rest, index - 1, x));
+        // rebuild the node with the rest modified
+        return new Node(currentNode.getData(), helperAdd(currentNode.getRest(), index - 1, x));
     }
-
+    
     /**
-     * Adds an element to the end of the list.
-     * @param x value to add
-     * @return true
+     * Add to end of list
+     * @param x the thing to add
+     * @return true always
      */
     public boolean add(Integer x) {
-        head = addLast(head, x);
-        return true;
+        head = addToEnd(head, x);
+        return true; // assignment says to return true
     }
-
-    // Recursive helper for addLast
-    private static Node addLast(Node n, Integer x) {
-        if (n == null) {
-            // We found the end, create the new node here
+    
+    // add to the end recursively
+    private Node addToEnd(Node currentNode, Integer x) {
+        if (currentNode == null) {
+            // reached the end, make new node
             return new Node(x, null);
         }
-        // Rebuild the current node pointing to the result of the recursion
-        return new Node(n.data, addLast(n.rest, x));
+        // rebuild this node with modified rest
+        return new Node(currentNode.getData(), addToEnd(currentNode.getRest(), x));
     }
-
+    
     /**
-     * Removes element at specific index.
-     * @param index position to remove
-     * @return the value that was removed
-     * @throws IndexOutOfBoundsException if index is invalid
+     * Remove element at index
+     * @param index which one to remove
+     * @return the thing that got removed
+     * @throws IndexOutOfBoundsException if index is bad
      */
     public Integer remove(int index) {
         if (index < 0) {
-            throw new IndexOutOfBoundsException("Index cannot be negative");
+            throw new IndexOutOfBoundsException("can't remove negative index");
         }
-        // Get the value first so we can return it later
+        if (head == null) {
+            throw new IndexOutOfBoundsException("can't remove from empty list");
+        }
         Integer valueToRemove = get(index);
-        
-        // Update head with the list after removal
-        head = remove(head, index);
+        head = helperRemove(head, index);
         return valueToRemove;
     }
-
-    // Recursive helper for remove
-    private static Node remove(Node n, int index) {
-        if (n == null) {
-            throw new IndexOutOfBoundsException("Index too large");
+    
+    // helper method removes node at index recursively
+    private Node helperRemove(Node currentNode, int index) {
+        if (currentNode == null) {
+            throw new IndexOutOfBoundsException("index too big");
         }
         if (index == 0) {
-            // Skip this node by returning the next one
-            return n.rest;
+            // skip this node by returning the rest
+            return currentNode.getRest();
         }
-        // Copy current node, recurse on the rest
-        return new Node(n.data, remove(n.rest, index - 1));
+        // rebuild with modified rest
+        return new Node(currentNode.getData(), helperRemove(currentNode.getRest(), index - 1));
     }
-
+    
     /**
-     * Updates the value at a specific index.
-     * @param index position to set
+     * Set value at index
+     * @param index where to set
      * @param x new value
-     * @return the old value
-     * @throws IndexOutOfBoundsException if index is invalid
+     * @return old value
+     * @throws IndexOutOfBoundsException if index is out of range
      */
     public Integer set(int index, Integer x) {
         if (index < 0) {
-            throw new IndexOutOfBoundsException("Index cannot be negative");
+            throw new IndexOutOfBoundsException("negative index");
         }
-        Integer oldValue = get(index);
-        head = set(head, index, x);
+        Integer oldValue = get(index); 
+        head = helperSet(head, index, x);
         return oldValue;
     }
-
-    // Recursive helper for set
-    private static Node set(Node n, int index, Integer x) {
-        if (n == null) {
-            throw new IndexOutOfBoundsException("Index too large");
+    
+    // helper methods sets value at index recursively
+    private Node helperSet(Node currentNode, int index, Integer x) {
+        if (currentNode == null) {
+            throw new IndexOutOfBoundsException("index too big");
         }
         if (index == 0) {
-            // Create replacement node pointing to the rest
-            return new Node(x, n.rest);
+            return new Node(x, currentNode.getRest());
         }
-        // Copy current node, recurse on the rest
-        return new Node(n.data, set(n.rest, index - 1, x));
+        return new Node(currentNode.getData(), helperSet(currentNode.getRest(), index - 1, x));
     }
-
-    /**
-     * Returns a string representation of the list.
-     * @return the string
-     */
-    public String toString() {
-        return "[" + toStringHelper(head) + "]";
-    }
-
-    private String toStringHelper(Node n) {
-        if (n == null) {
-            return "";
-        }
-        if (n.rest == null) {
-            return String.valueOf(n.data);
-        }
-        return n.data + ", " + toStringHelper(n.rest);
-    }
+    
 }
