@@ -1,4 +1,4 @@
-public class LinkedList<E> {
+public class LinkedList<E> implements Stack<E>, Queue<E> {
     /**
     * A generic linked list that can store any type.
     * @param <E> the type of elements stored in this list
@@ -434,7 +434,71 @@ public class LinkedList<E> {
         }
         return new Node<>(currentNode.getData(), helperSet(currentNode.getRest(), index - 1, x));
     }
+    // My Stack interface Methods
+
+    /**
+    * Inserts the specified element into this stack.
+    * Time Complexity: Θ(1)
+    * @param x the element to insert
+    */
+
+    @Override
+    public void push(E x) {
+        add(0,x);
+    }
+
+    /**
+    * Remove and return the most recently pushed element from this stack.
+    * Time Complexity: Θ(1)
+    * @return the top element
+    * @throws java.util.NoSuchElementException if empty
+    */
+    @Override
+    public E pop(){
+        if (isEmpty()) {
+            throw new java.util.NoSuchElementException("Empty Stack!");
+        }
+        return remove(0);
+    }
+    /**
+    * Retrieve but do not remove the top element of this stack.
+    * Time Complexity: Θ(1)
+    * @return the top element
+    * @throws java.util.NoSuchElementException if empty
+    */
     
+    @Override
+    public E top() {
+        if (isEmpty()) {
+            throw new java.util.NoSuchElementException("Stack is Empty");
+        }
+        return get(0);
+    }
+
+    // Queue interface methods
+
+    /**
+    * Insert the specified element into the queue (back).
+    * Time Complexity: Θ(1)
+    * @param x the element to insert
+    */
+    @Override
+    public void enqueue(E x) {add(x);}
+
+    /**
+    * Remove and return the least recently enqueued element from this queue (front).
+    * Time Complexity: Θ(1)
+    * @return the next element
+    * @throws java.util.NoSuchElementException if empty
+    */
+
+    @Override
+    public E dequeue() {
+        if(isEmpty()) throw new java.util.NoSuchElementException("Empty Queue");
+        return remove(0);
+    }
+
+
 }
 
 /*
