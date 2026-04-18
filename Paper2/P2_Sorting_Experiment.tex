@@ -9,6 +9,8 @@
 \usepackage{xcolor}
 \usepackage{float}
 \usepackage{hyperref}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric}
 
 \singlespacing
 
@@ -60,13 +62,18 @@ For complexity, Selection Sort is straightforward: best, average, and worst case
 \subsection*{Visualization on [8, 6, 7, 5, 3, 0, 9]}
 \begin{figure}[H]
 \centering
-\begin{tabular}{>{\ttfamily}l}
-Start: [8, 6, 7, 5, 3, 0, 9] \\
-Pass 1 (min=0): [0, 6, 7, 5, 3, 8, 9] \\
-Pass 2 (min=3): [0, 3, 7, 5, 6, 8, 9] \\
-Pass 3 (min=5): [0, 3, 5, 7, 6, 8, 9] \\
-Pass 4 (min=6): [0, 3, 5, 6, 7, 8, 9]
-\end{tabular}
+\begin{tikzpicture}[node distance=0.95cm, >=Latex]
+\tikzstyle{state}=[draw, rounded corners, fill=blue!6, inner sep=4pt, font=\ttfamily\small]
+\node[state] (s0) {Start: [8, 6, 7, 5, 3, 0, 9]};
+\node[state, below=of s0] (s1) {Pass 1 (min=0): [0, 6, 7, 5, 3, 8, 9]};
+\node[state, below=of s1] (s2) {Pass 2 (min=3): [0, 3, 7, 5, 6, 8, 9]};
+\node[state, below=of s2] (s3) {Pass 3 (min=5): [0, 3, 5, 7, 6, 8, 9]};
+\node[state, below=of s3] (s4) {Pass 4 (min=6): [0, 3, 5, 6, 7, 8, 9]};
+\draw[->] (s0) -- (s1);
+\draw[->] (s1) -- (s2);
+\draw[->] (s2) -- (s3);
+\draw[->] (s3) -- (s4);
+\end{tikzpicture}
 \caption{Selection Sort key states on the shared input array.}
 \end{figure}
 
@@ -78,14 +85,32 @@ More precisely, heap construction is $O(n)$ and extraction is $O(n \log n)$, so 
 \subsection*{Visualization on [8, 6, 7, 5, 3, 0, 9]}
 \begin{figure}[H]
 \centering
-\begin{tabular}{>{\ttfamily}l}
-Input: [8, 6, 7, 5, 3, 0, 9] \\
-After heap-build: [9, 6, 8, 5, 3, 0, 7] \\
-Extract max 9: [8, 6, 7, 5, 3, 0, 9] \\
-Extract max 8: [7, 6, 0, 5, 3, 8, 9] \\
-...continue... \\
-Final: [0, 3, 5, 6, 7, 8, 9]
-\end{tabular}
+\begin{tikzpicture}[>=Latex, node distance=1.0cm]
+\tikzstyle{arr}=[draw, rounded corners, fill=green!7, inner sep=3pt, font=\ttfamily\small]
+\tikzstyle{heapnode}=[circle, draw, fill=yellow!20, minimum size=7mm, inner sep=0pt, font=\small]
+
+\node[arr] (a0) at (0,0) {Input: [8, 6, 7, 5, 3, 0, 9]};
+\node[arr] (a1) at (0,-1.1) {After heap-build: [9, 6, 8, 5, 3, 0, 7]};
+
+\node[heapnode] (h1) at (5.8,0.2) {9};
+\node[heapnode] (h2) at (5.0,-0.8) {6};
+\node[heapnode] (h3) at (6.6,-0.8) {8};
+\node[heapnode] (h4) at (4.5,-1.8) {5};
+\node[heapnode] (h5) at (5.5,-1.8) {3};
+\node[heapnode] (h6) at (6.3,-1.8) {0};
+\node[heapnode] (h7) at (7.2,-1.8) {7};
+
+\draw (h1)--(h2) (h1)--(h3) (h2)--(h4) (h2)--(h5) (h3)--(h6) (h3)--(h7);
+
+\node[arr] (a2) at (0,-2.4) {Extract max 9: [8, 6, 7, 5, 3, 0, 9]};
+\node[arr] (a3) at (0,-3.5) {Extract max 8: [7, 6, 0, 5, 3, 8, 9]};
+\node[arr] (a4) at (0,-4.6) {Final: [0, 3, 5, 6, 7, 8, 9]};
+
+\draw[->] (a0) -- (a1);
+\draw[->] (a1) -- (a2);
+\draw[->] (a2) -- (a3);
+\draw[->] (a3) -- (a4);
+\end{tikzpicture}
 \caption{Heapsort progression showing heap build and extraction phases.}
 \end{figure}
 
@@ -97,14 +122,26 @@ Its complexity profile is stable: best/average/worst are all $\Theta(n \log n)$ 
 \subsection*{Visualization on [8, 6, 7, 5, 3, 0, 9]}
 \begin{figure}[H]
 \centering
-\begin{tabular}{>{\ttfamily}l}
-Split: [8, 6, 7, 5] and [3, 0, 9] \\
-Split left: [8, 6] [7, 5] -> [6, 8] [5, 7] \\
-Merge left half: [5, 6, 7, 8] \\
-Split right: [3, 0] [9] -> [0, 3] [9] \\
-Merge right half: [0, 3, 9] \\
-Final merge: [0, 3, 5, 6, 7, 8, 9]
-\end{tabular}
+\begin{tikzpicture}[>=Latex, node distance=0.95cm]
+\tikzstyle{box}=[draw, rounded corners, fill=orange!10, inner sep=3pt, font=\ttfamily\small]
+\node[box] (r0) at (0,0) {[8,6,7,5,3,0,9]};
+\node[box] (r1) at (-2.3,-1.2) {[8,6,7,5]};
+\node[box] (r2) at (2.3,-1.2) {[3,0,9]};
+\node[box] (r3) at (-3.4,-2.4) {[8,6]};
+\node[box] (r4) at (-1.1,-2.4) {[7,5]};
+\node[box] (r5) at (1.4,-2.4) {[3,0]};
+\node[box] (r6) at (3.6,-2.4) {[9]};
+\node[box] (m1) at (-2.3,-3.6) {[5,6,7,8]};
+\node[box] (m2) at (2.3,-3.6) {[0,3,9]};
+\node[box, fill=orange!20] (m3) at (0,-4.8) {[0,3,5,6,7,8,9]};
+
+\draw[->] (r0)--(r1) (r0)--(r2);
+\draw[->] (r1)--(r3) (r1)--(r4);
+\draw[->] (r2)--(r5) (r2)--(r6);
+\draw[->] (r3)--(m1) (r4)--(m1);
+\draw[->] (r5)--(m2) (r6)--(m2);
+\draw[->] (m1)--(m3) (m2)--(m3);
+\end{tikzpicture}
 \caption{Merge Sort divide and merge structure on the same input.}
 \end{figure}
 
@@ -116,12 +153,24 @@ With Red-Black balancing, each insertion is $O(\log n)$, so building the tree fr
 \subsection*{Visualization on [8, 6, 7, 5, 3, 0, 9]}
 \begin{figure}[H]
 \centering
-\begin{tabular}{>{\ttfamily}l}
-Insert order: 8, 6, 7, 5, 3, 0, 9 \\
-Tree grows with balancing rotations/recolors \\
-In-order traversal visits: left subtree -> node -> right subtree \\
-Traversal output: [0, 3, 5, 6, 7, 8, 9]
-\end{tabular}
+\begin{tikzpicture}[>=Latex]
+\tikzstyle{bnode}=[circle, draw, fill=black!80, text=white, minimum size=7mm, inner sep=0pt, font=\small]
+\tikzstyle{rnode}=[circle, draw, fill=red!65, text=white, minimum size=7mm, inner sep=0pt, font=\small]
+\tikzstyle{arr}=[draw, rounded corners, fill=gray!8, inner sep=4pt, font=\ttfamily\small]
+
+\node[bnode] (n6) at (0,0) {6};
+\node[bnode] (n3) at (-1.5,-1.2) {3};
+\node[bnode] (n8) at (1.5,-1.2) {8};
+\node[rnode] (n0) at (-2.2,-2.4) {0};
+\node[rnode] (n5) at (-0.8,-2.4) {5};
+\node[rnode] (n7) at (0.8,-2.4) {7};
+\node[rnode] (n9) at (2.2,-2.4) {9};
+
+\draw (n6)--(n3) (n6)--(n8) (n3)--(n0) (n3)--(n5) (n8)--(n7) (n8)--(n9);
+
+\node[arr] (out) at (0,-3.8) {In-order output: [0, 3, 5, 6, 7, 8, 9]};
+\draw[->] (0,-2.9) -- (out);
+\end{tikzpicture}
 \caption{Tree Sort using a Red-Black Tree and in-order traversal.}
 \end{figure}
 
@@ -135,14 +184,26 @@ Complexity summary for Introsort: best and average are typically $O(n \log n)$, 
 \subsection*{Visualization on [8, 6, 7, 5, 3, 0, 9]}
 \begin{figure}[H]
 \centering
-\begin{tabular}{>{\ttfamily}l}
-Start: [8, 6, 7, 5, 3, 0, 9] \\
-Median-of-three pivot near center (first partition) \\
-Partition into smaller/greater regions around pivot \\
-Recursively process partitions (small ones finished by insertion sort) \\
-If depth limit is hit, switch partition to heapsort \\
-Final: [0, 3, 5, 6, 7, 8, 9]
-\end{tabular}
+\begin{tikzpicture}[>=Latex, node distance=1.0cm]
+\tikzstyle{proc}=[rectangle, draw, rounded corners, fill=purple!8, minimum width=5.8cm, minimum height=0.85cm, align=center, font=\small]
+\tikzstyle{dec}=[diamond, draw, fill=purple!12, aspect=2.2, align=center, font=\small]
+
+\node[proc] (p0) {Start array: [8, 6, 7, 5, 3, 0, 9]};
+\node[proc, below=of p0] (p1) {Quicksort partition (median-of-three pivot)};
+\node[dec, below=1.1cm of p1] (d1) {Depth limit reached?};
+\node[proc, below left=1.2cm and 1.8cm of d1] (p2) {No: keep partitioning};
+\node[proc, below right=1.2cm and 1.8cm of d1] (p3) {Yes: switch to heapsort};
+\node[proc, below=2.2cm of d1] (p4) {Finish small ranges with insertion sort};
+\node[proc, below=of p4, fill=purple!18] (p5) {Final: [0, 3, 5, 6, 7, 8, 9]};
+
+\draw[->] (p0)--(p1);
+\draw[->] (p1)--(d1);
+\draw[->] (d1)-- node[midway, left] {No} (p2);
+\draw[->] (d1)-- node[midway, right] {Yes} (p3);
+\draw[->] (p2)--(p4);
+\draw[->] (p3)--(p4);
+\draw[->] (p4)--(p5);
+\end{tikzpicture}
 \caption{Introsort flow: Quicksort strategy with depth-guarded Heapsort fallback.}
 \end{figure}
 
@@ -252,6 +313,7 @@ git --no-pager log --date=short --pretty=format:'%h | %ad | %an | %s' -n 100
 \end{verbatim}
 
 \begin{verbatim}
+fe7a60a | 2026-04-18 | AdamKaderbhai | Paper2
 4d98eb7 | 2026-03-04 | AdamKaderbhai | Homeworrks and assignments
 964b5d3 | 2026-02-11 | AdamKaderbhai | Homework3
 6faca56 | 2026-01-30 | AdamKaderbhai | HW2
