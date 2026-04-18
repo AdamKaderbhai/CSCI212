@@ -1,0 +1,263 @@
+\documentclass[12pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{setspace}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{hyperref}
+
+\singlespacing
+
+\lstset{
+  language=Java,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue!60!black}\bfseries,
+  commentstyle=\color{green!40!black},
+  stringstyle=\color{red!50!black},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  stepnumber=1,
+  numbersep=8pt,
+  tabsize=2,
+  showstringspaces=false,
+  breaklines=true,
+  frame=single,
+  framerule=0.4pt,
+  rulecolor=\color{black!30}
+}
+
+\title{Sorting Experimentation: A Comparative Study of Selection Sort, Heapsort, Merge Sort, Tree Sort, and Introsort}
+\author{Adam Kaderbhai}
+\date{April 17, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This paper compares five sorting algorithms implemented in Java: Selection Sort, Heapsort, Merge Sort, Tree Sort (using a Red-Black Tree), and Introsort. The goal is to evaluate algorithm behavior under different input conditions while satisfying core sorting requirements from coursework. Each algorithm is briefly explained and illustrated using the initial array [8, 6, 7, 5, 3, 0, 9]. The experiment measures elapsed time and evaluates performance on random, already sorted, and reverse-sorted input arrays. Results show the expected gap between quadratic and near-log-linear algorithms: Selection Sort is consistently the slowest, while Heapsort, Tree Sort, Merge Sort, and Introsort perform significantly faster for the tested size. Merge Sort and Introsort are especially strong on structured inputs in this implementation. The study confirms that input shape matters, and that hybrid and balanced-structure approaches provide robust practical performance. The paper concludes with observations, limitations, and directions for further experimentation.
+\end{abstract}
+
+\section{Introduction}
+Sorting is one of the most fundamental tasks in computer science, and it appears in searching, indexing, analytics, and systems engineering. Different sorting algorithms offer different tradeoffs in simplicity, memory usage, best-case behavior, and worst-case guarantees. The purpose of this paper is to compare five sorting algorithms implemented from scratch in Java: Selection Sort, Heapsort, Merge Sort, Tree Sort based on a self-balancing Red-Black Tree, and Introsort.
+
+The first part of the paper describes each algorithm in plain language and includes a custom visualization using the same initial input array [8, 6, 7, 5, 3, 0, 9]. The second part presents an experiment design and measured results. The experiment focuses on elapsed runtime and compares behavior across three input types: random, sorted, and reverse-sorted arrays. The final sections interpret the data, summarize conclusions, and provide full reproducibility via source code and git history.
+
+A central focus of this paper is time complexity. For each algorithm, best-case, average-case, and worst-case time bounds are discussed and then connected directly to measured runtime. This is important because two algorithms can both be ``fast'' in one experiment while still having very different growth rates as $n$ becomes large.
+
+In addition to $O(\cdot)$ and $\Theta(\cdot)$ bounds, this paper briefly uses $\Omega(\cdot)$ to describe lower bounds. In particular, comparison-based sorting has a known worst-case lower bound of $\Omega(n \log n)$ comparisons, so no comparison-based algorithm can beat that asymptotically in the worst case (Cormen et al., 2009).
+
+For algorithm foundations and asymptotic analysis, this work draws on standard references including Cormen et al. (2009), Goodrich et al. (2014), Sedgewick and Wayne (2011), and Musser (1997).
+
+\section{Selection Sort}
+Selection Sort repeatedly finds the smallest remaining element and places it at the next position in the output prefix. It is easy to implement and in-place, but it always performs about the same number of comparisons regardless of input order, leading to $O(n^2)$ time (Cormen et al., 2009).
+
+For complexity, Selection Sort is straightforward: best, average, and worst cases are all $\Theta(n^2)$ because each pass scans nearly the full remaining suffix. Its extra space is $O(1)$.
+
+\subsection*{Visualization on [8, 6, 7, 5, 3, 0, 9]}
+\begin{figure}[H]
+\centering
+\begin{tabular}{>{\ttfamily}l}
+Start: [8, 6, 7, 5, 3, 0, 9] \\
+Pass 1 (min=0): [0, 6, 7, 5, 3, 8, 9] \\
+Pass 2 (min=3): [0, 3, 7, 5, 6, 8, 9] \\
+Pass 3 (min=5): [0, 3, 5, 7, 6, 8, 9] \\
+Pass 4 (min=6): [0, 3, 5, 6, 7, 8, 9]
+\end{tabular}
+\caption{Selection Sort key states on the shared input array.}
+\end{figure}
+
+\section{Heapsort}
+Heapsort first builds a max-heap from the input. Then it repeatedly swaps the root (largest value) with the end of the unsorted region and restores the heap property. This gives worst-case $O(n \log n)$ time and in-place behavior with no extra array proportional to $n$ (Goodrich et al., 2014).
+
+More precisely, heap construction is $O(n)$ and extraction is $O(n \log n)$, so total runtime is $\Theta(n \log n)$ in best, average, and worst cases. Extra space is $O(1)$ for array-based heapsort.
+
+\subsection*{Visualization on [8, 6, 7, 5, 3, 0, 9]}
+\begin{figure}[H]
+\centering
+\begin{tabular}{>{\ttfamily}l}
+Input: [8, 6, 7, 5, 3, 0, 9] \\
+After heap-build: [9, 6, 8, 5, 3, 0, 7] \\
+Extract max 9: [8, 6, 7, 5, 3, 0, 9] \\
+Extract max 8: [7, 6, 0, 5, 3, 8, 9] \\
+...continue... \\
+Final: [0, 3, 5, 6, 7, 8, 9]
+\end{tabular}
+\caption{Heapsort progression showing heap build and extraction phases.}
+\end{figure}
+
+\section{Merge Sort}
+Merge Sort is a divide-and-conquer algorithm: split the array into halves recursively, then merge sorted halves back together. In this implementation, it uses a temporary array for merges. Its runtime is $O(n \log n)$ in best, average, and worst cases, with additional $O(n)$ auxiliary memory (Cormen et al., 2009).
+
+Its complexity profile is stable: best/average/worst are all $\Theta(n \log n)$ because every level of recursion processes all $n$ elements, and there are $\Theta(\log n)$ levels. The tradeoff is space: this implementation requires $\Theta(n)$ extra memory for temporary merge storage.
+
+\subsection*{Visualization on [8, 6, 7, 5, 3, 0, 9]}
+\begin{figure}[H]
+\centering
+\begin{tabular}{>{\ttfamily}l}
+Split: [8, 6, 7, 5] and [3, 0, 9] \\
+Split left: [8, 6] [7, 5] -> [6, 8] [5, 7] \\
+Merge left half: [5, 6, 7, 8] \\
+Split right: [3, 0] [9] -> [0, 3] [9] \\
+Merge right half: [0, 3, 9] \\
+Final merge: [0, 3, 5, 6, 7, 8, 9]
+\end{tabular}
+\caption{Merge Sort divide and merge structure on the same input.}
+\end{figure}
+
+\section{Tree Sort (Red-Black Tree)}
+Tree Sort inserts all elements into a binary search tree and then performs an in-order traversal to emit sorted values. To keep operations efficient, this project uses a Red-Black Tree (self-balancing BST), so insertion remains $O(\log n)$ in the worst case (Goodrich et al., 2014). The implementation stores duplicate counts in each node so repeated values are handled correctly.
+
+With Red-Black balancing, each insertion is $O(\log n)$, so building the tree from $n$ elements is $O(n \log n)$. In-order traversal is $O(n)$, so total treesort runtime is $\Theta(n \log n)$ across best, average, and worst cases under this balanced-tree design. Extra space is $O(n)$ for tree nodes.
+
+\subsection*{Visualization on [8, 6, 7, 5, 3, 0, 9]}
+\begin{figure}[H]
+\centering
+\begin{tabular}{>{\ttfamily}l}
+Insert order: 8, 6, 7, 5, 3, 0, 9 \\
+Tree grows with balancing rotations/recolors \\
+In-order traversal visits: left subtree -> node -> right subtree \\
+Traversal output: [0, 3, 5, 6, 7, 8, 9]
+\end{tabular}
+\caption{Tree Sort using a Red-Black Tree and in-order traversal.}
+\end{figure}
+
+\section{Introsort (Fifth Choice)}
+Introsort (introspective sort) starts as Quicksort, monitors recursion depth, and switches to Heapsort when the recursion becomes too deep. Typical implementations also use Insertion Sort for very small partitions. This hybrid approach keeps practical speed close to Quicksort while protecting worst-case complexity at $O(n \log n)$ (Musser, 1997).
+
+In this project, Introsort uses median-of-three pivot selection, a depth limit of $2\lfloor\log_2 n\rfloor$, fallback range-heapsort, and insertion sort cleanup for small ranges.
+
+Complexity summary for Introsort: best and average are typically $O(n \log n)$, with strong constants in practice due to Quicksort-style partitioning; worst case is still bounded by $O(n \log n)$ because the algorithm switches to Heapsort at the depth threshold. Space is typically $O(\log n)$ from recursion depth.
+
+\subsection*{Visualization on [8, 6, 7, 5, 3, 0, 9]}
+\begin{figure}[H]
+\centering
+\begin{tabular}{>{\ttfamily}l}
+Start: [8, 6, 7, 5, 3, 0, 9] \\
+Median-of-three pivot near center (first partition) \\
+Partition into smaller/greater regions around pivot \\
+Recursively process partitions (small ones finished by insertion sort) \\
+If depth limit is hit, switch partition to heapsort \\
+Final: [0, 3, 5, 6, 7, 8, 9]
+\end{tabular}
+\caption{Introsort flow: Quicksort strategy with depth-guarded Heapsort fallback.}
+\end{figure}
+
+\subsection*{Complexity Summary Table}
+Table~\ref{tab:complexity} consolidates the theoretical bounds used to interpret the timing data.
+
+\begin{table}[H]
+\centering
+\caption{Theoretical complexity comparison.}
+\label{tab:complexity}
+\begin{tabular}{lcccc}
+\toprule
+Algorithm & Best Time & Average Time & Worst Time & Extra Space \\
+\midrule
+Selection Sort & $\Theta(n^2)$ & $\Theta(n^2)$ & $\Theta(n^2)$ & $O(1)$ \\
+Heapsort & $\Theta(n \log n)$ & $\Theta(n \log n)$ & $\Theta(n \log n)$ & $O(1)$ \\
+Merge Sort & $\Theta(n \log n)$ & $\Theta(n \log n)$ & $\Theta(n \log n)$ & $\Theta(n)$ \\
+Tree Sort (RBT) & $\Theta(n \log n)$ & $\Theta(n \log n)$ & $\Theta(n \log n)$ & $O(n)$ \\
+Introsort & $O(n \log n)$ & $O(n \log n)$ & $O(n \log n)$ & $O(\log n)$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent\textbf{Lower-bound note.}
+The table is consistent with the classical comparison-sorting lower bound of $\Omega(n \log n)$ in the worst case. Selection Sort does not contradict this result because its worst case is strictly larger ($\Theta(n^2)$), while Heapsort, Merge Sort, Tree Sort (with balancing), and Introsort match the lower bound order in worst-case growth.
+
+\section{Methodology}
+The experiment was implemented in \texttt{Sorting.java} with a single method per algorithm and one \texttt{main} method that runs all tests.
+
+\subsection*{Metric}
+The measured metric is elapsed runtime per sort call. Timing is captured with \texttt{System.nanoTime()} and converted to milliseconds. Nanosecond timing gives better precision than millisecond clocking for moderate input sizes (Oracle, 2024).
+
+\subsection*{Input design}
+To analyze input sensitivity, three input families were tested:
+\begin{enumerate}
+    \item Random values
+    \item Already sorted values
+    \item Reverse-sorted values
+\end{enumerate}
+
+Each condition used:
+\begin{enumerate}
+    \item Array size $n = 5000$
+    \item Trials = 3 per condition
+    \item Identical base data copied before each sort so every algorithm receives equivalent input
+\end{enumerate}
+
+The code also verifies correctness after each run with an \texttt{isSorted} check and throws an error if any algorithm fails.
+
+\section{Results}
+Table~\ref{tab:results} reports average runtime (ms) over 3 trials.
+
+\begin{table}[H]
+\centering
+\caption{Average runtime in milliseconds (n=5000, trials=3).}
+\label{tab:results}
+\begin{tabular}{lccc}
+\toprule
+Algorithm & Random & Sorted & Reverse \\
+\midrule
+Selection Sort & 6.455 & 6.742 & 7.501 \\
+Heapsort & 0.513 & 0.315 & 0.328 \\
+Merge Sort & 1.426 & 0.116 & 0.088 \\
+Tree Sort (RBT) & 0.670 & 0.303 & 0.279 \\
+Introsort & 0.625 & 0.216 & 0.198 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection*{Interpretation}
+Selection Sort is predictably much slower because its cost grows quadratically. For $n=5000$, $n^2$-style work is already much larger than $n \log n$-style work, and the gap will widen as $n$ increases. The other four algorithms are substantially faster and align with their theoretical near-log-linear bounds. In this implementation, Merge Sort and Introsort are especially fast on sorted and reverse-sorted inputs, while Heapsort and Tree Sort remain consistent across all input types. These outcomes are consistent with the complexity model in Table~\ref{tab:complexity} and standard analysis (Cormen et al., 2009; Goodrich et al., 2014).
+
+\subsection*{Limitations}
+The experiment currently focuses on one array size and one primary metric (runtime). A larger study could include additional sizes, standard deviations, comparison counts, and memory usage. JVM warm-up and JIT optimization effects can also influence small timing differences.
+
+\section{Conclusions}
+This paper implemented and compared five sorting algorithms required by the assignment: Selection Sort, Heapsort, Merge Sort, Tree Sort using a Red-Black Tree, and Introsort as the additional algorithm. The implementations were validated for correctness and benchmarked under random, sorted, and reverse-sorted inputs.
+
+The data shows a clear performance separation that matches complexity theory: Selection Sort is educational but not competitive at larger sizes because of $\Theta(n^2)$ growth, while Heapsort, Merge Sort, Tree Sort, and Introsort scale near $\Theta(n \log n)$. Introsort is a strong practical choice because it combines Quicksort-style speed with worst-case protection through Heapsort fallback. Tree Sort with a self-balancing tree also performs well and connects directly to balanced BST theory from prior coursework. Future work should extend testing to larger datasets and additional metrics to build a more complete performance profile.
+
+\section{References}
+\begin{thebibliography}{9}
+
+\bibitem{} Cormen, T. H., Leiserson, C. E., Rivest, R. L., \& Stein, C. (2009). \textit{Introduction to Algorithms} (3rd ed.). MIT Press.
+
+\bibitem{} Goodrich, M. T., Tamassia, R., \& Goldwasser, M. H. (2014). \textit{Data Structures and Algorithms in Java} (6th ed.). Wiley.
+
+\bibitem{} Musser, D. R. (1997). Introspective sorting and selection algorithms. \textit{Software: Practice and Experience, 27}(8), 983--993.
+
+\bibitem{} Oracle. (2024). \textit{Class System (Java SE API): nanoTime method}. \url{https://docs.oracle.com/en/java/}
+
+\bibitem{} Sedgewick, R., \& Wayne, K. (2011). \textit{Algorithms} (4th ed.). Addison-Wesley.
+
+\end{thebibliography}
+
+\appendix
+
+\section{Appendix A: Full Source Code}
+\noindent The complete implementation used in this paper is shown below.
+
+\lstinputlisting[language=Java]{Sorting.java}
+
+\section{Appendix B: Git Log Transcript}
+\noindent Transcript captured with:
+\begin{verbatim}
+git --no-pager log --date=short --pretty=format:'%h | %ad | %an | %s' -n 100
+\end{verbatim}
+
+\begin{verbatim}
+4d98eb7 | 2026-03-04 | AdamKaderbhai | Homeworrks and assignments
+964b5d3 | 2026-02-11 | AdamKaderbhai | Homework3
+6faca56 | 2026-01-30 | AdamKaderbhai | HW2
+c42f37d | 2026-01-28 | AdamKaderbhai | HomeWork1
+47141c4 | 2026-01-14 | AdamKaderbhai | Create .DS_Store
+f05963f | 2026-01-14 | AdamKaderbhai | Initial commit
+\end{verbatim}
+
+\end{document}
